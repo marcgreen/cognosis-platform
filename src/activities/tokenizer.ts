@@ -85,6 +85,41 @@ export async function gpt3_detokenize(tokens: number[]): Promise<string> {
   return text;
 }
 
+/**
+ * Split text into chunks of the given token size
+ * Adjacent chunks will overlap by chunk_overlap tokens, which can naively help avoiding splitting
+ * in bad places. Value of 0 for chunk_overlap will result in no overlap
+ * 
+ * @param text string to split into chunks
+ * @param chunk_size number of tokens per chunk
+ * @param chunk_overlap number of tokens to overlap adjacent chunks
+ */
+export async function split_text_by_tokens(text: string, chunk_size: number, chunk_overlap: number = 0): Promise<string[]> {
+  let chunks: string[] = [];
+  let text_tokens: number[] = await gpt3_tokenize( text );
+  console.log(`Tokenized ${text.length} characters into ${text_tokens.length} tokens.`);
+
+  for ( let i = 0; i < text_tokens.length; i += chunk_size - chunk_overlap )
+  {
+      let context_tokens_slice: number[] = text_tokens.slice(i, i + chunk_size);
+      let context_slice = await gpt3_detokenize( context_tokens_slice );
+      chunks.push( context_slice );
+  }
+  return chunks;
+}
+
+// TODO test cases inspo: https://github.com/jerryjliu/gpt_index/blob/main/tests/langchain_helpers/test_text_splitter.py
+// test chunk overlap larger than chunk size throws error
+// test chunk size longer than text
+// test chunk overlap longer than text but smaller than chunk size
+// test text is shorter than chunk size but longer tha chunk size - chunk overlap
+// test empty text
+// test chunk size 0 with empty text
+// test basic chunking without overlap
+// test basic chunking with overlap
+// test text is only whitespace (spaces and newlines)
+
+
 export async function sentence_tokenizer( text: String ): Promise< string[] > {
   throw new Error("Not implemented" );
 }
