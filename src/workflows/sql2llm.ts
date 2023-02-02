@@ -6,7 +6,7 @@ import * as sql2llm from '../activities/sql2llm';
 import { resourceLimits } from 'node:worker_threads';
 import { actionLogger } from '../activities';
 
-const { text_splitter, sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
+const { split_text_by_tokens, sql2llm_session_multiplexer, parse_and_fix_csv } = proxyActivities< typeof activities >({ startToCloseTimeout: '10 minute' });
 
 export interface SQL2LLMInput extends Frame {
     dbname: string;
@@ -159,7 +159,7 @@ Database:`, {sql: q}, 1, 32, 0.0, "text-curie-001" )).replace( /^\s+/, '' ).repl
 
     if ( context )
     {
-        let context_chunks: string[] = await text_splitter( context, 2048 );
+        let context_chunks: string[] = await split_text_by_tokens( context, 2048 );
 
         let results: SQL2LLMOutput[] = [];
         if ( context_chunks.length > 1 )
