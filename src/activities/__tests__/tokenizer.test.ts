@@ -1,6 +1,6 @@
 import { split_text_by_tokens } from '../tokenizer';
 
-// source of truth for these tests: https://platform.openai.com/tokenizer?view=bpe
+// source of truth for tokenizing: https://platform.openai.com/tokenizer?view=bpe
 
 describe("split_text_by_tokens", () => {
   test("empty text", async () => {
@@ -22,7 +22,7 @@ describe("split_text_by_tokens", () => {
 });
 
 describe("split_text_by_tokens", () => {
-  test("2 token chunking without overlap; odd number of chunks", async () => {
+  test("2 token chunking without overlap; odd number of tokens", async () => {
     expect(await split_text_by_tokens("Hello world! This is still a test.", 2)).toEqual(
       ["Hello world", "! This", " is still", " a test", "."])
   })
@@ -35,16 +35,97 @@ describe("split_text_by_tokens", () => {
 });
 
 describe("split_text_by_tokens", () => {
-  test("chunking with overlap", async () => {
+  test("2 token chunking with 1 overlap", async () => {
     expect(await split_text_by_tokens("Hello world! This is a test.", 2, 1)).toEqual(
-      ["Hello world", " world!", "! This", " This is", " is a", " a test", " test.", "."]) // TODO is this what we want?
+      ["Hello world", " world!", "! This", " This is", " is a", " a test", " test."])
   })
 });
 
-// TODO test cases inspo: https://github.com/jerryjliu/gpt_index/blob/main/tests/langchain_helpers/test_text_splitter.py
-// test chunk overlap larger than chunk size throws error
-// test chunk overlap equal to chunk size throws error
-// test chunk size longer than text
-// test chunk overlap longer than text but smaller than chunk size
-//   this one is redundant. but i think there might be more edges to test?
-// test text is shorter than chunk size but longer tha chunk size - chunk overlap
+describe("split_text_by_tokens", () => {
+  test("2 token chunking with 1 overlap; odd number of tokens", async () => {
+    expect(await split_text_by_tokens("Hello world! This is still a test.", 2, 1)).toEqual(
+      ["Hello world", " world!", "! This", " This is", " is still", " still a", " a test", " test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("3 token chunking with 1 overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 3, 1)).toEqual(
+      ["Hello world!", "! This is", " is a test", " test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("3 token chunking with 1 overlap; odd number of tokens", async () => {
+    expect(await split_text_by_tokens("Hello world! This is still a test.", 3, 1)).toEqual(
+      ["Hello world!", "! This is", " is still a", " a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("3 token chunking with 2 overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 3, 2)).toEqual(
+      ["Hello world!", " world! This", "! This is", " This is a", " is a test", " a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("3 token chunking with 2 overlap; odd number of tokens", async () => {
+    expect(await split_text_by_tokens("Hello world! This is still a test.", 3, 2)).toEqual(
+      ["Hello world!", " world! This", "! This is", " This is still", " is still a", " still a test", " a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size equal to text length returns single chunk with text", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 8)).toEqual(
+      ["Hello world! This is a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size equal to text length returns single chunk with text, despite chunk_overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 8, 1)).toEqual(
+      ["Hello world! This is a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size longer than text returns single chunk with text", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 9)).toEqual(
+      ["Hello world! This is a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size longer than text returns single chunk with text, despite chunk_overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 9, 1)).toEqual(
+      ["Hello world! This is a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("large chunk size and large chunk overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 7, 6)).toEqual(
+      ["Hello world! This is a test", " world! This is a test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("large chunk size and small chunk overlap", async () => {
+    expect(await split_text_by_tokens("Hello world! This is a test.", 7, 1)).toEqual(
+      ["Hello world! This is a test", " test."])
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk overlap larger than chunk size throws error", async () => {
+    expect(await split_text_by_tokens("Hello world! This is still a test.", 2, 3)).toThrow(Error)
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk overlap equal chunk size throws error", async () => {
+    expect(await split_text_by_tokens("Hello world! This is still a test.", 3, 3)).toThrow(Error)
+  })
+});
