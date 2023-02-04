@@ -9,12 +9,6 @@ describe("split_text_by_tokens", () => {
 });
 
 describe("split_text_by_tokens", () => {
-  test("chunk size 0 with empty text", async () => {
-    expect(await split_text_by_tokens("", 0)).toEqual([])
-  })
-});
-
-describe("split_text_by_tokens", () => {
   test("1 token chunking without overlap", async () => {
     expect(await split_text_by_tokens("Hello world! This is a test.", 1)).toEqual(
       ["Hello", " world", "!", " This", " is", " a", " test", "."])
@@ -120,12 +114,36 @@ describe("split_text_by_tokens", () => {
 
 describe("split_text_by_tokens", () => {
   test("chunk overlap larger than chunk size throws error", async () => {
-    expect(await split_text_by_tokens("Hello world! This is still a test.", 2, 3)).toThrow(Error)
+    expect(split_text_by_tokens("Hello world! This is still a test.", 2, 3)).rejects.toThrow("chunk_overlap must be less than chunk_size")
   })
 });
 
 describe("split_text_by_tokens", () => {
   test("chunk overlap equal chunk size throws error", async () => {
-    expect(await split_text_by_tokens("Hello world! This is still a test.", 3, 3)).toThrow(Error)
+    expect(split_text_by_tokens("Hello world! This is still a test.", 3, 3)).rejects.toThrow("chunk_overlap must be less than chunk_size")
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size 0 with empty text", async () => {
+    expect(split_text_by_tokens("", 0)).rejects.toThrow("chunk_overlap must be less than chunk_size")
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("chunk size 0 with non-empty text", async () => {
+    expect(split_text_by_tokens("a", 0)).rejects.toThrow("chunk_overlap must be less than chunk_size")
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("negative chunk size throws", async () => {
+    expect(split_text_by_tokens("test", -1, -2)).rejects.toThrow("chunk_size must be non-negative")
+  })
+});
+
+describe("split_text_by_tokens", () => {
+  test("negative overlap throws", async () => {
+    expect(split_text_by_tokens("test", 0, -1)).rejects.toThrow("chunk_overlap must be non-negative")
   })
 });

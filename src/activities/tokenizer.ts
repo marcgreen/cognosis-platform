@@ -91,10 +91,16 @@ export async function gpt3_detokenize(tokens: number[]): Promise<string> {
  * in bad places. Value of 0 for chunk_overlap will result in no overlap
  * 
  * @param text string to split into chunks
- * @param chunk_size number of tokens per chunk
+ * @param chunk_size max number of tokens per chunk
  * @param chunk_overlap number of tokens to overlap adjacent chunks. must be less than chunk_size
  */
 export async function split_text_by_tokens(text: string, chunk_size: number, chunk_overlap: number = 0): Promise<string[]> {
+  if (chunk_size < 0) {
+    throw new Error("chunk_size must be non-negative");
+  }
+  if (chunk_overlap < 0) {
+    throw new Error("chunk_overlap must be non-negative");
+  }
   if (chunk_overlap >= chunk_size) {
     throw new Error("chunk_overlap must be less than chunk_size");
   }
@@ -103,9 +109,14 @@ export async function split_text_by_tokens(text: string, chunk_size: number, chu
   let text_tokens: number[] = await gpt3_tokenize( text );
   console.log(`Tokenized ${text.length} characters into ${text_tokens.length} tokens.`);
 
-  for ( let i = 0; i < text_tokens.length; i += chunk_size - chunk_overlap )
+  // window slides by chunk_size - chunk_overlap tokens each iteration
+  // we stop sliding when a chunk includes the last token
+  let tok_len = text_tokens.length;
+  for ( let idx = 0;
+        idx < tok_len && idx + chunk_overlap < tok_len; // rhs of && ensures last token only included once
+        idx += chunk_size - chunk_overlap )
   {
-      let context_tokens_slice: number[] = text_tokens.slice(i, i + chunk_size);
+      let context_tokens_slice: number[] = text_tokens.slice(idx, idx + chunk_size);
       let context_slice = await gpt3_detokenize( context_tokens_slice );
       chunks.push( context_slice );
   }
