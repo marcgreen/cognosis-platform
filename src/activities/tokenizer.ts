@@ -86,13 +86,13 @@ export async function gpt3_detokenize(tokens: number[]): Promise<string> {
 }
 
 /**
- * Split text into chunks of the given token size
+ * Split text into chunks of the given token size.
  * Adjacent chunks will overlap by chunk_overlap tokens, which can naively help avoid splitting
- * in bad places. Value of 0 for chunk_overlap will result in no overlap
+ * in bad places.
  * 
  * @param text string to split into chunks
- * @param chunk_size max number of tokens per chunk
- * @param chunk_overlap number of tokens to overlap adjacent chunks. must be less than chunk_size
+ * @param chunk_size number of tokens per chunk (last chunk may be smaller)
+ * @param chunk_overlap number of tokens to overlap adjacent chunks. defaults to 0.
  */
 export async function split_text_by_tokens(text: string, chunk_size: number, chunk_overlap: number = 0): Promise<string[]> {
   if (chunk_size < 0) {
@@ -109,7 +109,7 @@ export async function split_text_by_tokens(text: string, chunk_size: number, chu
   let text_tokens: number[] = await gpt3_tokenize( text );
   console.log(`Tokenized ${text.length} characters into ${text_tokens.length} tokens.`);
 
-  // window slides by chunk_size - chunk_overlap tokens each iteration
+  // window slides by chunk_size - chunk_overlap tokens each iteration.
   // we stop sliding when a chunk includes the last token
   let tok_len = text_tokens.length;
   for ( let idx = 0;
